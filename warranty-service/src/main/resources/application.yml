@@ -1,0 +1,37 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: warranty-service
+
+  # ===============================
+  # Kafka Producer Configuration
+  # ===============================
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # ===============================
+  # PostgreSQL Database Configuration
+  # ===============================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/acs_warranty_db
+    username: acs
+    password: acs
+    driver-class-name: org.postgresql.Driver
+
+  # ===============================
+  # JPA / Hibernate Configuration
+  # ===============================
+  jpa:
+    hibernate:
+      ddl-auto: update   # creates tables automatically
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
