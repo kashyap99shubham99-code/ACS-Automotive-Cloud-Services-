@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: contract-service
+    name: contract-service   # 👈 Service ID used by Eureka & Gateway
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -31,3 +31,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           time_zone: UTC
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
