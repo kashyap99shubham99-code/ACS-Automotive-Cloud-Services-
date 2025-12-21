@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway   # 👈 Service ID in Eureka
+
+  cloud:
+    gateway:
+      routes:
+        - id: contract-service
+          uri: lb://CONTRACT-SERVICE
+          predicates:
+            - Path=/api/contracts/**
+
+        - id: warranty-service
+          uri: lb://WARRANTY-SERVICE
+          predicates:
+            - Path=/api/warranties/**
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

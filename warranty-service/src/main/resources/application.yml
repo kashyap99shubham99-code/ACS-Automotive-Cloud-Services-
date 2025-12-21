@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: warranty-service
+    name: warranty-service   # 👈 Eureka Service ID
 
   # ===============================
   # Kafka Producer Configuration
@@ -29,9 +29,19 @@ spring:
   # ===============================
   jpa:
     hibernate:
-      ddl-auto: update   # creates tables automatically
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# ===============================
+# Eureka Client Configuration
+# ===============================
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
