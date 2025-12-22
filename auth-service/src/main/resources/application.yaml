@@ -1,0 +1,54 @@
+server:
+  port: 8085   # Auth service runs on its own port
+
+spring:
+  application:
+    name: auth-service   # ? Service ID registered in Eureka
+
+  # ===============================
+  # PostgreSQL Database Configuration
+  # ===============================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/acs_auth_db
+    username: acs
+    password: acs
+    driver-class-name: org.postgresql.Driver
+
+  # ===============================
+  # JPA / Hibernate Configuration
+  # ===============================
+  jpa:
+    hibernate:
+      ddl-auto: update        # auto-create/update tables
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  # ===============================
+  # Spring Security (basic setup)
+  # ===============================
+  security:
+    user:
+      name: disabled
+      password: disabled
+
+# ===============================
+# Eureka Client Configuration
+# ===============================
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# ===============================
+# JWT Configuration
+# ===============================
+jwt:
+  secret: acs-secret-key-which-should-be-very-long-and-secure
+  expiration: 3600000   # 1 hour in milliseconds

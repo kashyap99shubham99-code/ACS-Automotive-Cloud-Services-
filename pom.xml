@@ -22,6 +22,7 @@
         <module>api-gateway</module>
         <module>common-library</module>
         <module>eureka-service</module>
+        <module>auth-service</module>
 
         <module>warranty-service</module>
         <module>contract-service</module>
