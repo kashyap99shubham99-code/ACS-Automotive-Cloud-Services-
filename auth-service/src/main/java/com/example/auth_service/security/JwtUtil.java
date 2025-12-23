@@ -4,51 +4,50 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    // 🔐 Secret key (must be at least 256 bits for HS256)
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
+    private final long expiration;
 
-    // ⏱ Token validity (24 hours)
-    private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+    public JwtUtil(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration}") long expiration
+    ) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expiration = expiration;
+    }
 
-    // ===============================
-    // Generate JWT Token
-    // ===============================
+    // Generate JWT
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // ===============================
-    // Extract Claims
-    // ===============================
+    // Extract claims
     public Claims getClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    // ===============================
-    // Validate Token ✅ (THIS FIXES YOUR ERROR)
-    // ===============================
+    // Validate token
     public boolean validateToken(String token) {
         try {
             Claims claims = getClaims(token);
-
-            // check expiration
             return claims.getExpiration().after(new Date());
         } catch (Exception e) {
             return false;

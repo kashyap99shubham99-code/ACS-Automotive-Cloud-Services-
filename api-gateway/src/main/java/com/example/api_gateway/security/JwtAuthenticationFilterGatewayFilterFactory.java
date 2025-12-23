@@ -25,6 +25,8 @@ public class JwtAuthenticationFilterGatewayFilterFactory
 
         return (exchange, chain) -> {
 
+            System.out.println("JWT FILTER HIT -> " + exchange.getRequest().getPath());
+
             String authHeader = exchange.getRequest()
                     .getHeaders()
                     .getFirst(HttpHeaders.AUTHORIZATION);
@@ -37,6 +39,7 @@ public class JwtAuthenticationFilterGatewayFilterFactory
             String token = authHeader.substring(7);
 
             if (!jwtUtil.validateToken(token)) {
+                System.out.println("Invalid JWT Token");
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
@@ -57,6 +60,5 @@ public class JwtAuthenticationFilterGatewayFilterFactory
     }
 
     public static class Config {
-        // no config for now
     }
 }
