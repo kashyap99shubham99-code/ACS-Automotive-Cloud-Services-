@@ -9,17 +9,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityWebFilterChain securityFilterChain(
-            ServerHttpSecurity http
-    ) {
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
+
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers(
-                                "/auth/**",
-                                "/actuator/**"
-                        ).permitAll()
-                        .anyExchange().authenticated()
+                        .anyExchange().permitAll()
                 )
                 .build();
     }

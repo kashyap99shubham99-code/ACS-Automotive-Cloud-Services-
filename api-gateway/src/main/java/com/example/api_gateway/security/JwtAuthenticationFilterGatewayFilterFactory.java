@@ -6,7 +6,6 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -25,11 +24,14 @@ public class JwtAuthenticationFilterGatewayFilterFactory
 
         return (exchange, chain) -> {
 
+            System.out.println("JWT FILTER HIT -> " + exchange.getRequest().getPath());
+
             String authHeader = exchange.getRequest()
                     .getHeaders()
                     .getFirst(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.out.println("Missing Authorization Header");
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
@@ -37,26 +39,24 @@ public class JwtAuthenticationFilterGatewayFilterFactory
             String token = authHeader.substring(7);
 
             if (!jwtUtil.validateToken(token)) {
+                System.out.println("Invalid JWT Token");
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
 
             Claims claims = jwtUtil.getClaims(token);
 
-            ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(
-                            exchange.getRequest()
+            return chain.filter(
+                    exchange.mutate()
+                            .request(exchange.getRequest()
                                     .mutate()
                                     .header("X-USER", claims.getSubject())
-                                    .build()
-                    )
-                    .build();
-
-            return chain.filter(mutatedExchange);
+                                    .build())
+                            .build()
+            );
         };
     }
 
     public static class Config {
-        // no config for now
     }
 }
