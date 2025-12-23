@@ -6,6 +6,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -31,7 +32,6 @@ public class JwtAuthenticationFilterGatewayFilterFactory
                     .getFirst(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                System.out.println("Missing Authorization Header");
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
@@ -46,14 +46,16 @@ public class JwtAuthenticationFilterGatewayFilterFactory
 
             Claims claims = jwtUtil.getClaims(token);
 
-            return chain.filter(
-                    exchange.mutate()
-                            .request(exchange.getRequest()
+            ServerWebExchange mutatedExchange = exchange.mutate()
+                    .request(
+                            exchange.getRequest()
                                     .mutate()
                                     .header("X-USER", claims.getSubject())
-                                    .build())
-                            .build()
-            );
+                                    .build()
+                    )
+                    .build();
+
+            return chain.filter(mutatedExchange);
         };
     }
 
