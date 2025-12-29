@@ -12,10 +12,14 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
 
         return http
+                // ❌ Disable Spring Security auth completely
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+
+                // ✅ Allow everything, JWT handled by Gateway Filter
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/**", "/actuator/**").permitAll()
-                        .anyExchange().authenticated()
+                        .anyExchange().permitAll()
                 )
                 .build();
     }
