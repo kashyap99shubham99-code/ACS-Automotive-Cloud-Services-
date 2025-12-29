@@ -15,7 +15,7 @@ public class JwtUtil {
     private final Key key;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
-        System.out.println("GATEWAY JWT SECRET = [" + secret + "]");
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 

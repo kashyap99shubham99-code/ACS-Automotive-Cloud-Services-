@@ -21,7 +21,7 @@ public class JwtUtil {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expiration
     ) {
-        System.out.println("AUTH JWT SECRET = [" + secret + "]");
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = expiration;
     }
