@@ -1,11 +1,13 @@
 package com.acs.warranty.service;
 
-import com.acs.warranty.dto.CreateWarrantyRequest;
-import com.acs.warranty.event.WarrantyEventPublisher;
+import com.acs.warranty.dto.WarrantyResponse;
 import com.acs.warranty.model.Warranty;
 import com.acs.warranty.repository.WarrantyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,46 +17,51 @@ public class WarrantyService {
             LoggerFactory.getLogger(WarrantyService.class);
 
     private final WarrantyRepository warrantyRepository;
-    private final WarrantyEventPublisher eventPublisher;
+    private final CacheManager cacheManager;
 
+    // ✅ Constructor Injection
     public WarrantyService(
             WarrantyRepository warrantyRepository,
-            WarrantyEventPublisher eventPublisher
+            CacheManager cacheManager
     ) {
         this.warrantyRepository = warrantyRepository;
-        this.eventPublisher = eventPublisher;
+        this.cacheManager = cacheManager;
     }
 
-    public Warranty createWarranty(CreateWarrantyRequest request) {
+    /**
+     * GET ACTIVE WARRANTY BY VIN
+     *
+     * ✔ Caches DTO (NOT entity)
+     * ✔ Explicit Cache HIT / MISS logs
+     * ✔ Redis + Spring Cache safe
+     *
+     * Cache:
+     *  - Cache Name : warranties
+     *  - Cache Key  : VIN
+     */
+    @Cacheable(
+            value = "warranties",
+            key = "#root.args[0]"
+    )
+    public WarrantyResponse getActiveWarrantyByVin(String vin) {
 
-        log.info("Checking existing warranty for VIN={}", request.getVehicleVin());
+        // 🔍 Manual cache check ONLY for logging clarity
+        Cache cache = cacheManager.getCache("warranties");
+        if (cache != null && cache.get(vin) != null) {
+            log.info("✅ CACHE HIT → Returning warranty from Redis for VIN={}", vin);
+        } else {
+            log.info("❌ CACHE MISS → Fetching warranty from DB for VIN={}", vin);
+        }
 
-        // ✅ DUPLICATE CHECK
-        warrantyRepository
-                .findByVehicleVinAndStatus(request.getVehicleVin(), "ACTIVE")
-                .ifPresent(existing -> {
-                    throw new IllegalStateException(
-                            "Active warranty already exists for vehicle VIN=" +
-                                    request.getVehicleVin()
-                    );
-                });
+        Warranty warranty = warrantyRepository
+                .findByVehicleVinAndStatus(vin, "ACTIVE")
+                .orElseThrow(() ->
+                        new IllegalStateException(
+                                "No active warranty found for VIN=" + vin
+                        )
+                );
 
-        // ✅ CREATE WARRANTY
-        Warranty warranty = Warranty.createNew(
-                request.getVehicleVin(),
-                request.getCustomerId(),
-                request.getStartDate(),
-                request.getEndDate()
-        );
-
-        // ✅ SAVE TO DB
-        warrantyRepository.save(warranty);
-
-        // ✅ PUBLISH EVENT
-        eventPublisher.publishWarrantyCreatedEvent(warranty);
-
-        log.info("Warranty created successfully with id={}", warranty.getWarrantyId());
-
-        return warranty;
+        // ✅ Convert ENTITY → DTO before returning
+        return WarrantyResponse.from(warranty);
     }
 }

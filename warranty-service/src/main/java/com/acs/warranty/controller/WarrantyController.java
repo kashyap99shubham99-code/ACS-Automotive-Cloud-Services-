@@ -1,35 +1,38 @@
 package com.acs.warranty.controller;
 
-import com.acs.warranty.dto.CreateWarrantyRequest;
-import com.acs.warranty.model.Warranty;
+import com.acs.warranty.dto.WarrantyResponse;
 import com.acs.warranty.service.WarrantyService;
-import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/warranties")
 public class WarrantyController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(WarrantyController.class);
-
     private final WarrantyService warrantyService;
 
-    // ✅ Constructor Injection (BEST PRACTICE)
+    // ✅ Constructor Injection
     public WarrantyController(WarrantyService warrantyService) {
         this.warrantyService = warrantyService;
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Warranty createWarranty(@Valid @RequestBody CreateWarrantyRequest request) {
-
-        log.info("Received create warranty request for VIN={}",
-                request.getVehicleVin());
-
-        return warrantyService.createWarranty(request);
+    /**
+     * GET WARRANTY BY VIN
+     *
+     * Example:
+     * GET /api/warranties/VIN-ACS-61821
+     *
+     * RULE:
+     * - Controller talks ONLY in DTOs
+     * - No entity leakage
+     */
+    @GetMapping("/{vin}")
+    public WarrantyResponse getWarrantyByVin(
+            @PathVariable("vin") String vin
+    ) {
+        // ✅ Service already returns DTO
+        return warrantyService.getActiveWarrantyByVin(vin);
     }
 }
