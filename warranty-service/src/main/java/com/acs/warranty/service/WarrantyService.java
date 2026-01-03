@@ -31,13 +31,10 @@ public class WarrantyService {
     /**
      * GET ACTIVE WARRANTY BY VIN
      *
-     * ✔ Caches DTO (NOT entity)
-     * ✔ Explicit Cache HIT / MISS logs
-     * ✔ Redis + Spring Cache safe
-     *
-     * Cache:
-     *  - Cache Name : warranties
-     *  - Cache Key  : VIN
+     * ✔ Redis cache enabled
+     * ✔ DTO cached (not JPA entity)
+     * ✔ No user-controlled data logged (Sonar-safe)
+     * ✔ Works with Spring CacheInterceptor
      */
     @Cacheable(
             value = "warranties",
@@ -45,23 +42,23 @@ public class WarrantyService {
     )
     public WarrantyResponse getActiveWarrantyByVin(String vin) {
 
-        // 🔍 Manual cache check ONLY for logging clarity
+        // 🔍 Cache check ONLY for observability (no user data logged)
         Cache cache = cacheManager.getCache("warranties");
         if (cache != null && cache.get(vin) != null) {
-            log.info("✅ CACHE HIT → Returning warranty from Redis for VIN={}", vin);
+            log.info("✅ CACHE HIT → Returning warranty from Redis");
         } else {
-            log.info("❌ CACHE MISS → Fetching warranty from DB for VIN={}", vin);
+            log.info("❌ CACHE MISS → Fetching warranty from DB");
         }
 
         Warranty warranty = warrantyRepository
                 .findByVehicleVinAndStatus(vin, "ACTIVE")
                 .orElseThrow(() ->
                         new IllegalStateException(
-                                "No active warranty found for VIN=" + vin
+                                "No active warranty found"
                         )
                 );
 
-        // ✅ Convert ENTITY → DTO before returning
+        // ✅ Convert ENTITY → DTO
         return WarrantyResponse.from(warranty);
     }
 }
