@@ -8,7 +8,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -20,6 +21,7 @@ public class Warranty {
     private String vehicleVin;
     private String customerId;
 
+    // ✅ Pure domain fields (no Jackson annotations here)
     private LocalDate startDate;
     private LocalDate endDate;
 
