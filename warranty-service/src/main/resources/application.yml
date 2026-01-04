@@ -28,11 +28,10 @@ spring:
   cache:
     type: redis
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 60000
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 60000
 
 eureka:
   client:
